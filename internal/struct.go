@@ -26,6 +26,7 @@ type SSLInfo struct {
 	SSLRemainingDate float64
 	ExpiredDate      time.Time
 	RegistryDate     time.Time
+	ExpiryStatus     string
 }
 
 type JsonStruct struct {

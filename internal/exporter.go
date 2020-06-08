@@ -80,7 +80,7 @@ func (e *Exporter) processMetrics(data SSLInfoArray, ch chan<- prometheus.Metric
 	local1, _ := time.LoadLocation("Asia/Taipei")
 	for _, x := range data {
 		//增加label的地方
-		ch <- prometheus.MustNewConstMetric(e.SSLMetrics["certificate_remaining_date"], prometheus.GaugeValue, x.SSLRemainingDate, x.DomainNmme, x.ExpiredDate.In(local1).Format("2006-01-02 15:04:05"), x.RegistryDate.In(local1).Format("2006-01-02 15:04:05"))
+		ch <- prometheus.MustNewConstMetric(e.SSLMetrics["certificate_remaining_date"], prometheus.GaugeValue, x.SSLRemainingDate, x.DomainNmme, x.ExpiredDate.In(local1).Format("2006-01-02 15:04:05"), x.RegistryDate.In(local1).Format("2006-01-02 15:04:05"), x.ExpiryStatus)
 
 	}
 	return nil
@@ -94,7 +94,7 @@ func AddMetrics() map[string]*prometheus.Desc {
 	SSLMetrics["certificate_remaining_date"] = prometheus.NewDesc(
 		prometheus.BuildFQName("certificate", "", "remaining_date"),
 		"A metric with a constant '0' value labeled by matchId,roomId,locationId from DB table.",
-		[]string{"domainName", "expiredDate", "registryDate"}, nil,
+		[]string{"domainName", "expiredDate", "registryDate", "status"}, nil,
 	)
 
 	log.Println("Metrics added.....")
