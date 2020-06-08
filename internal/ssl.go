@@ -32,7 +32,7 @@ func (e *Exporter) gatherData() (SSLInfoArray, error) {
 	// cloudflare domains, fetch redis
 	cloudflareKeys := database.Keys(fmt.Sprintf("%s*", database.CloudfalrePrefix))
 	for _, key := range cloudflareKeys {
-		dName := key[len(database.CloudfalrePrefix):len(key)]
+		dName := key[len(database.CloudfalrePrefix):]
 		targetDomains = append(targetDomains, dName)
 	}
 
@@ -65,38 +65,40 @@ func VerifySSL(sslname string) SSLInfoArray {
 
 	stedout, err := ExecShell("echo | openssl s_client -servername " + sslname + " -connect " + sslname + ":443 2>/dev/null | openssl x509 -noout -dates")
 	if err != "" {
-		log.Fatalln(err)
+		// Load certificate error
+		log.Printf("[Error] Failed to laod certificate of server name: %s, reason: %v", sslname, err)
 		//panic("")
+	} else {
+		result := strings.Split(stedout, "\n")
+		log.Println(result)
+
+		beforedate := strings.Split(result[0], "=")
+		afterdate := strings.Split(result[1], "=")
+		//log.Println("------beforedate[1]-----")
+		//log.Println(beforedate[1])
+		//og.Println("------afterdate[1]-----")
+		//log.Println(afterdate[1])
+
+		dataBefore := ParserDateFormat(beforedate[1])
+		//log.Println("------dataBefore-----")
+		//log.Println(dataBefore)
+		dataAfter := ParserDateFormat(afterdate[1])
+		//log.Println("------dataAfter-----")
+		//log.Println(dataAfter)
+		(&sslstruct).SetDomainNmme(sslname)
+		(&sslstruct).SetRegistryDate(dataBefore)
+		(&sslstruct).SetExpiredDate(dataAfter)
+
+		currentTime := time.Now().UTC()
+		currentTime.Location()
+
+		remain := timeSubDays(dataAfter, currentTime)
+		strremain := strconv.Itoa(remain)
+		f64remain, _ := strconv.ParseFloat(strremain, 64)
+		(&sslstruct).RemainingDate(f64remain)
+		test = append(test, sslstruct)
 	}
-	result := strings.Split(stedout, "\n")
-	log.Println(result)
 
-	beforedate := strings.Split(result[0], "=")
-	afterdate := strings.Split(result[1], "=")
-	//log.Println("------beforedate[1]-----")
-	//log.Println(beforedate[1])
-	//og.Println("------afterdate[1]-----")
-	//log.Println(afterdate[1])
-
-	dataBefore := ParserDateFormat(beforedate[1])
-	//log.Println("------dataBefore-----")
-	//log.Println(dataBefore)
-	dataAfter := ParserDateFormat(afterdate[1])
-	//log.Println("------dataAfter-----")
-	//log.Println(dataAfter)
-	(&sslstruct).SetDomainNmme(sslname)
-	(&sslstruct).SetRegistryDate(dataBefore)
-	(&sslstruct).SetExpiredDate(dataAfter)
-
-	currentTime := time.Now().UTC()
-	currentTime.Location()
-
-	remain := timeSubDays(dataAfter, currentTime)
-	strremain := strconv.Itoa(remain)
-	f64remain, _ := strconv.ParseFloat(strremain, 64)
-	(&sslstruct).RemainingDate(f64remain)
-
-	test = append(test, sslstruct)
 	return test
 }
 
