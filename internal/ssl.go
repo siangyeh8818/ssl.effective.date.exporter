@@ -94,11 +94,11 @@ func VerifySSL(sslname string) SSLInfoArray {
 
 		remain := timeSubDays(dataAfter, currentTime)
 		if remain < 0 {
-			sslstruct.ExpiryStatus = "expired"
+			sslstruct.ExpiryStatus = "invalid"
 		} else if remain >= 0 && remain < 30 {
 			sslstruct.ExpiryStatus = "expiring"
 		} else {
-			sslstruct.ExpiryStatus = "registered"
+			sslstruct.ExpiryStatus = "valid"
 		}
 		strremain := strconv.Itoa(remain)
 		f64remain, _ := strconv.ParseFloat(strremain, 64)
