@@ -2,6 +2,7 @@ package exporter
 
 import (
 	"log"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -11,21 +12,31 @@ import (
 )
 
 func (e *Exporter) gatherData() (SSLInfoArray, error) {
-
+	log.Println("-------gatherData()------")
 	var data SSLInfoArray
+	log.Println("-------e.Config.Domain-------")
 	log.Println(e.Config.Domain)
-	wg := sync.WaitGroup{}
+
+	log.Println("-------len(e.Config.Domain)----------")
 	log.Println(len(e.Config.Domain))
+	wg := sync.WaitGroup{}
 	wg.Add(len(e.Config.Domain))
 
-	for _, sslname := range e.Config.Domain {
-		go func() {
-			result := VerifySSL(sslname)
+	var mux sync.Mutex
+	//for i, sslname := range e.Config.Domain {
+	for i := 0; i < len(e.Config.Domain); i++ {
+		go func(i int) {
+			mux.Lock()
+			log.Println(i)
+			log.Println(e.Config.Domain[i])
+			result := VerifySSL(e.Config.Domain[i])
 			log.Println(result)
-			MergeSlice(data, result, &wg)
-		}()
+			data = MergeSlice(data, result, &wg)
+			mux.Unlock()
+		}(i)
 	}
 	wg.Wait()
+	log.Println(data)
 	return data, nil
 
 }
@@ -60,7 +71,10 @@ func VerifySSL(sslname string) SSLInfoArray {
 	(&sslstruct).SetRegistryDate(dataBefore)
 	(&sslstruct).SetExpiredDate(dataAfter)
 
-	remain := timeSubDays(dataAfter, dataBefore)
+	currentTime := time.Now().UTC()
+	currentTime.Location()
+
+	remain := timeSubDays(dataAfter, currentTime)
 	strremain := strconv.Itoa(remain)
 	f64remain, _ := strconv.ParseFloat(strremain, 64)
 	(&sslstruct).RemainingDate(f64remain)
@@ -79,7 +93,7 @@ func ParserDateFormat(date string) time.Time {
 	if err != "" {
 		log.Fatalln(err)
 	}
-
+	defer os.Remove(u.String())
 	linuxdate := GetUuidContent(u.String())
 	t, _ := time.Parse(layout, linuxdate)
 	return t
@@ -87,12 +101,19 @@ func ParserDateFormat(date string) time.Time {
 }
 
 func timeSubDays(t1, t2 time.Time) int {
+
 	log.Println("------timeSubDays--------")
+	//local1, _ := time.LoadLocation("Asia/Taipei")
+	//log.Println(t1.In(local1).Format("2006-01-02 15:04:05"))
+	//log.Println(t2.In(local1).Format("2006-01-02 15:04:05"))
 	if t1.Location().String() != t2.Location().String() {
+		//log.Println(t1.Location().String())
+		//log.Println(t2.Location().String())
 		return -1
 	}
 	hours := t1.Sub(t2).Hours()
-
+	log.Println("------hours--------")
+	log.Println(hours)
 	if hours <= 0 {
 		log.Println("------hours <= 0--------")
 		return -1

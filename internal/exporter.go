@@ -80,7 +80,6 @@ func (e *Exporter) processMetrics(data SSLInfoArray, ch chan<- prometheus.Metric
 	local1, _ := time.LoadLocation("Asia/Taipei")
 	for _, x := range data {
 		//增加label的地方
-		log.Println("x.DomainNmme")
 		ch <- prometheus.MustNewConstMetric(e.SSLMetrics["certificate_remaining_date"], prometheus.GaugeValue, x.SSLRemainingDate, x.DomainNmme, x.ExpiredDate.In(local1).Format("2006-01-02 15:04:05"), x.RegistryDate.In(local1).Format("2006-01-02 15:04:05"))
 
 	}
