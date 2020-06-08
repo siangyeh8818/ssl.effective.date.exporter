@@ -5,9 +5,13 @@ import (
 	"os"
 
 	exporter "github.com/siangyeh8818/ssl.effective.date.exporter/internal"
+	"github.com/siangyeh8818/ssl.effective.date.exporter/internal/database"
 )
 
 func main() {
+
+	// connect redis, which is sit inside the kubernetes cluster
+	database.ConnectRedis()
 
 	//exporter.VerifySSL("ch02.hnjump.cn")
 

@@ -1,4 +1,4 @@
-package exporter
+package database
 
 import (
 	"fmt"
@@ -8,6 +8,8 @@ import (
 )
 
 var redisDB *redis.Client
+
+const CloudfalrePrefix = "st:domain:cloudflare:"
 
 func ConnectRedis() {
 	pong, err := connect()

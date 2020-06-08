@@ -1,6 +1,7 @@
 package exporter
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -9,6 +10,8 @@ import (
 	"time"
 
 	uuid "github.com/nu7hatch/gouuid"
+
+	"github.com/siangyeh8818/ssl.effective.date.exporter/internal/database"
 )
 
 func (e *Exporter) gatherData() (SSLInfoArray, error) {
@@ -19,17 +22,31 @@ func (e *Exporter) gatherData() (SSLInfoArray, error) {
 
 	log.Println("-------len(e.Config.Domain)----------")
 	log.Println(len(e.Config.Domain))
+
+	var targetDomains []string
+	// gaia domains
+	for _, domainName := range e.Config.Domain {
+		targetDomains = append(targetDomains, domainName)
+	}
+
+	// cloudflare domains, fetch redis
+	cloudflareKeys := database.Keys(fmt.Sprintf("%s*", database.CloudfalrePrefix))
+	for _, key := range cloudflareKeys {
+		dName := key[len(database.CloudfalrePrefix):len(key)]
+		targetDomains = append(targetDomains, dName)
+	}
+
 	wg := sync.WaitGroup{}
-	wg.Add(len(e.Config.Domain))
+	wg.Add(len(targetDomains))
 
 	var mux sync.Mutex
 	//for i, sslname := range e.Config.Domain {
-	for i := 0; i < len(e.Config.Domain); i++ {
+	for i := 0; i < len(targetDomains); i++ {
 		go func(i int) {
 			mux.Lock()
 			log.Println(i)
-			log.Println(e.Config.Domain[i])
-			result := VerifySSL(e.Config.Domain[i])
+			log.Println(targetDomains[i])
+			result := VerifySSL(targetDomains[i])
 			log.Println(result)
 			data = MergeSlice(data, result, &wg)
 			mux.Unlock()
