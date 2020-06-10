@@ -21,7 +21,7 @@ func (e *Exporter) HandlerGatherData() {
 		e.Cache.AddKeyValueCache("tempdata", data)
 
 		//internal_time, _ := time.ParseDuration(os.Getenv("INTERNAL_TIME_TO_MYSQL"))
-		internal_time, _ := time.ParseDuration("5m")
+		internal_time, _ := time.ParseDuration("3h")
 		time.Sleep(time.Duration(internal_time))
 	}
 }
