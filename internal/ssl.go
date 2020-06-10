@@ -14,7 +14,19 @@ import (
 	"github.com/siangyeh8818/ssl.effective.date.exporter/internal/database"
 )
 
-func (e *Exporter) gatherData() (SSLInfoArray, error) {
+func (e *Exporter) HandlerGatherData() {
+	log.Println("---------------------HandlerGatherData()---------------------")
+	for {
+		data, _ := e.GatherData()
+		e.Cache.AddKeyValueCache("tempdata", data)
+
+		//internal_time, _ := time.ParseDuration(os.Getenv("INTERNAL_TIME_TO_MYSQL"))
+		internal_time, _ := time.ParseDuration("5m")
+		time.Sleep(time.Duration(internal_time))
+	}
+}
+
+func (e *Exporter) GatherData() (SSLInfoArray, error) {
 	log.Println("-------gatherData()------")
 	var data SSLInfoArray
 	log.Println("-------e.Config.Domain-------")

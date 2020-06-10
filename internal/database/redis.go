@@ -3,6 +3,8 @@ package database
 import (
 	"fmt"
 	"log"
+	"os"
+	"time"
 
 	"github.com/go-redis/redis"
 )
@@ -16,10 +18,11 @@ func ConnectRedis() {
 	fmt.Println(pong, err)
 	if err != nil {
 		log.Println("Failed to connect redis: ", err)
-		log.Println("Try to reconnect redis")
+		log.Println("Wait for 5 second , Try to reconnect redis")
+		time.Sleep(5 * time.Second)
 		pong, err = connect()
 		if err != nil {
-			log.Println("Give up")
+			log.Println("Give up to connect to redis")
 			return
 		}
 	}
@@ -28,10 +31,18 @@ func ConnectRedis() {
 }
 
 func connect() (string, error) {
+
+	redisAddress := os.Getenv("REDIS_ADDRESS")
+	if redisAddress == "" {
+		redisAddress = "127.0.0.1:6379"
+		//redisAddress = "redis-master.db:6379"
+	}
+	redisPassword := os.Getenv("REDIS_PASSWORD")
+
 	redisDB = redis.NewClient(&redis.Options{
 		// Addr: "172.17.0.2:6379",
-		Addr:     "redis-master.db:6379",
-		Password: "",
+		Addr:     redisAddress,
+		Password: redisPassword,
 		DB:       0,
 	})
 

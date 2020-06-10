@@ -15,6 +15,7 @@ type Exporter struct {
 	//remaining_date prometheus.Gauge
 	SSLMetrics map[string]*prometheus.Desc
 	Config     *BaseConfig
+	Cache      PNCache
 }
 
 func (s *Server) Start() {
@@ -46,15 +47,19 @@ func NewServer(exporter Exporter) *Server {
 func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	log.Println("Collect()")
 
-	data, err := e.gatherData()
-	log.Println(data)
-	if err != nil {
-		log.Fatalf("Error for openssl: %v", err)
-		//log.Errorf("Error gathering Data from Mysql server: %v", err)
-		return
-	}
+	data := e.Cache.GetValue("tempdata")
+	data2 := data.(SSLInfoArray)
+	//data, err := e.GatherData()
+	log.Println("Collect()-----data2")
 
-	err = e.processMetrics(data, ch)
+	log.Println(data2)
+	//if err != nil {
+	//	log.Fatalf("Error for openssl: %v", err)
+	//log.Errorf("Error gathering Data from Mysql server: %v", err)
+	//	return
+	//}
+
+	err := e.processMetrics(data2, ch)
 	if err != nil {
 		log.Fatalf("Error Processing Metrics", err)
 	}
