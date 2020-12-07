@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: ssl-effective-exporter
+  name: ssl-effective-exporter
+  namespace: monitor
+spec:
+  ports:
+  - name: metrics
+    port: 8081
+    protocol: TCP
+    targetPort: 8081
+  selector:
+    app: ssl-effective-exporter
+  sessionAffinity: None
+  type: ClusterIP

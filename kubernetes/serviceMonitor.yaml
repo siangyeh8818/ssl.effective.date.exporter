@@ -1,0 +1,20 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    k8s-app: "ssl-effective-exporter"
+    stage: "all"
+    class: "all"
+  name: "ssl-effective-exporter"
+  namespace: "prometheus"
+spec:
+  endpoints:
+  - targetPort: 8081
+    honorLabels: true
+    interval: 300s
+  namespaceSelector:
+    matchNames:
+    - monitor
+  selector:
+    matchLabels:
+      app: ssl-effective-exporter

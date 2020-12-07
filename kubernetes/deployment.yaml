@@ -1,0 +1,40 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: ssl-effective-exporter
+  namespace: monitor
+spec:
+  replicas: 1
+  minReadySeconds: 15
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: ssl-effective-exporter
+    spec:
+      containers:
+      - name: ssl-effective-exporter
+        image: siangyeh8818/ssl-effective-date-exporter:v1.2
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8081
+          name: metrics
+          protocol: TCP
+        env:
+        - name: CONFIG_PATH
+          value: "/opt/gaia/gaiaDomains.json"
+        - name: REDIS_ADDRESS
+          value: "redis-master.db:6379"
+        - name: REDIS_PASSWORD
+          value: ""
+        volumeMounts:
+        - name: gaia-domains-config
+          mountPath: /opt/gaia/
+      volumes:
+      - name: gaia-domains-config
+        configMap:
+          name: gaia-push-domains
